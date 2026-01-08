@@ -6,8 +6,9 @@ import ExpenseList from './components/ExpenseList';
 import Dashboard from './components/Dashboard';
 import AIInsights from './components/AIInsights';
 import VehicleProfile from './components/VehicleProfile';
+import AIChat from './components/AIChat';
 
-type Tab = 'dashboard' | 'expenses' | 'garage';
+type Tab = 'dashboard' | 'expenses' | 'garage' | 'chat';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -18,7 +19,7 @@ const App: React.FC = () => {
   
   const [vehicle, setVehicle] = useState<VehicleInfo>(() => {
     const saved = localStorage.getItem('autocare_vehicle');
-    return saved ? JSON.parse(saved) : { brand: 'Мой', model: 'Автомобиль', year: '-', plate: '-', vin: '-' };
+    return saved ? JSON.parse(saved) : { brand: 'Мой', model: 'Автомобиль', year: '2020', plate: '-', vin: '-' };
   });
 
   const [documents, setDocuments] = useState<Document[]>(() => {
@@ -85,32 +86,43 @@ const App: React.FC = () => {
             </div>
             <div>
               <h1 className="text-xl font-black text-slate-800 tracking-tight leading-tight">AutoCare</h1>
-              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Digital Garage</p>
+              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Assistant Pro</p>
             </div>
           </div>
 
-          <nav className="flex gap-1 bg-slate-100 p-1 rounded-2xl">
-            <button 
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'dashboard' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-            >
-              Сводка
-            </button>
-            <button 
-              onClick={() => setActiveTab('expenses')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'expenses' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-            >
-              Расходы
-            </button>
-            <button 
-              onClick={() => setActiveTab('garage')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'garage' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-            >
-              Гараж
-            </button>
+          <nav className="hidden md:flex gap-1 bg-slate-100 p-1 rounded-2xl">
+            {(['dashboard', 'expenses', 'garage', 'chat'] as Tab[]).map(tab => (
+              <button 
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === tab ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                {tab === 'dashboard' ? 'Сводка' : 
+                 tab === 'expenses' ? 'Расходы' : 
+                 tab === 'garage' ? 'Гараж' : 'AI Чат'}
+              </button>
+            ))}
           </nav>
         </div>
       </header>
+
+      {/* Mobile Nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around p-2 z-50">
+        {(['dashboard', 'expenses', 'garage', 'chat'] as Tab[]).map(tab => (
+          <button 
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex flex-col items-center p-2 rounded-xl transition-all ${activeTab === tab ? 'text-blue-600' : 'text-slate-400'}`}
+          >
+            <div className="text-xl">
+              {tab === 'dashboard' ? '📊' : tab === 'expenses' ? '💰' : tab === 'garage' ? '🚗' : '🤖'}
+            </div>
+            <span className="text-[10px] font-bold mt-1">
+              {tab === 'dashboard' ? 'Сводка' : tab === 'expenses' ? 'Траты' : tab === 'garage' ? 'Гараж' : 'Чат'}
+            </span>
+          </button>
+        ))}
+      </nav>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         {activeTab === 'dashboard' && (
@@ -124,7 +136,7 @@ const App: React.FC = () => {
               </div>
               <div className="lg:col-span-4 space-y-6">
                 <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl">
-                  <h4 className="font-bold opacity-80 uppercase text-[10px] tracking-widest mb-4">Автомобиль в системе</h4>
+                  <h4 className="font-bold opacity-80 uppercase text-[10px] tracking-widest mb-4">Активное авто</h4>
                   <div className="flex gap-4 items-center">
                     {vehicle.photo ? (
                       <img src={vehicle.photo} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/20" alt="Car" />
@@ -137,29 +149,11 @@ const App: React.FC = () => {
                     </div>
                   </div>
                   <button 
-                    onClick={() => setActiveTab('garage')}
-                    className="w-full mt-6 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-semibold transition-colors"
+                    onClick={() => setActiveTab('chat')}
+                    className="w-full mt-6 py-2 bg-white text-blue-600 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
                   >
-                    Перейти в гараж
+                    <span>🤖</span> Спросить ассистента
                   </button>
-                </div>
-                
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                  <h4 className="font-bold text-slate-800 mb-4">Документы</h4>
-                  <div className="space-y-3">
-                    {documents.slice(0, 3).map(doc => (
-                      <div key={doc.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer" onClick={() => setActiveTab('garage')}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                          </div>
-                          <span className="text-sm font-medium text-slate-700">{doc.title}</span>
-                        </div>
-                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                      </div>
-                    ))}
-                    {documents.length === 0 && <p className="text-xs text-slate-400 text-center py-4">Нет документов</p>}
-                  </div>
                 </div>
               </div>
             </div>
@@ -200,17 +194,13 @@ const App: React.FC = () => {
             />
           </div>
         )}
-      </main>
 
-      {/* Floating Action Button for adding expense quick access if on dashboard */}
-      {activeTab === 'dashboard' && (
-        <button 
-          onClick={() => setActiveTab('expenses')}
-          className="fixed bottom-8 right-8 bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-all flex items-center justify-center group"
-        >
-          <svg className="w-6 h-6 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-        </button>
-      )}
+        {activeTab === 'chat' && (
+          <div className="animate-in slide-in-from-bottom-8 duration-500 max-w-4xl mx-auto">
+            <AIChat expenses={expenses} vehicle={vehicle} />
+          </div>
+        )}
+      </main>
     </div>
   );
 };

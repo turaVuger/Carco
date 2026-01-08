@@ -45,3 +45,9 @@ export interface Document {
 }
 
 export type StatsPeriod = 'all' | 'month' | 'quarter' | 'year';
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
+  timestamp: number;
+}
